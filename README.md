@@ -28,3 +28,19 @@ $ make tests
 ```
 $ make dc-up
 ```
+
+## How to simulate the access restrictions?
+
+```
+By IP (Total of 6 requests: the first five will be released and the sixth will be restricted)
+
+$ cd requests
+$ ./testing-by-ip.sh
+
+-----
+
+By Token (Total of 11 requests: the first ten will be released and the eleventh will be restricted)
+
+$ cd requests
+$ ./testing-by-token.sh
+```
