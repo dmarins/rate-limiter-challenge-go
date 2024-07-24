@@ -17,16 +17,16 @@ $ cd rate-limiter-challenge-go
 $ go mod tidy
 ```
 
-## Run tests
-
-```
-$ make tests
-```
-
 ## Containers Up
 
 ```
 $ make dc-up
+```
+
+## Run tests
+
+```
+$ make tests
 ```
 
 ## How to simulate the access restrictions?
@@ -35,6 +35,7 @@ $ make dc-up
 By IP (Total of 6 requests: the first five will be released and the sixth will be restricted)
 
 $ cd requests
+$ chmod +x testing-by-ip.sh
 $ ./testing-by-ip.sh
 
 -----
@@ -42,5 +43,6 @@ $ ./testing-by-ip.sh
 By Token (Total of 11 requests: the first ten will be released and the eleventh will be restricted)
 
 $ cd requests
+$ chmod +x testing-by-token.sh
 $ ./testing-by-token.sh
 ```

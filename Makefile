@@ -13,8 +13,8 @@ dc-restart:
 fmt: 
 	$(GOCMD) fmt ./...
 
-test-clean: 
-	fmt $(GOCMD) clean -testcache
+test-clean: fmt 
+	$(GOCMD) clean -testcache
 
-tests: 
-	fmt test-clean $(GOCMD) test -cover -p=1 ./...
+tests: fmt test-clean 
+	$(GOCMD) test -cover -p=1 ./...

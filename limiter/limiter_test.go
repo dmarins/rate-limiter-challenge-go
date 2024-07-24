@@ -1,21 +1,21 @@
-package limiter
+package limiter_test
 
 import (
 	"context"
 	"testing"
 	"time"
 
+	"github.com/dmarins/rate-limiter-challenge-go/limiter"
 	"github.com/go-redis/redis/v8"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAllowByIp_WhenItDoesNotExceedsTheLimitOfRequestsPerIP(t *testing.T) {
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "root",
+		Addr: "localhost:6379",
 	})
 
-	rl := NewRateLimiter(rdb, 5, 10, 5*time.Second, 5*time.Second)
+	rl := limiter.NewRateLimiter(rdb, 5, 10, 5*time.Second, 5*time.Second)
 
 	ctx := context.Background()
 	rdb.FlushAll(ctx)
@@ -23,7 +23,7 @@ func TestAllowByIp_WhenItDoesNotExceedsTheLimitOfRequestsPerIP(t *testing.T) {
 	ip := "192.168.1.1"
 
 	for i := 0; i < 5; i++ {
-		allowed, err := rl.allowByIP(ctx, ip)
+		allowed, err := rl.AllowByIP(ctx, ip)
 
 		assert.Nil(t, err)
 		assert.True(t, allowed)
@@ -35,7 +35,7 @@ func TestAllowByIp_WhenItExceedsTheLimitOfRequestsPerIP(t *testing.T) {
 		Addr: "localhost:6379",
 	})
 
-	rl := NewRateLimiter(rdb, 5, 10, 5*time.Second, 5*time.Second)
+	rl := limiter.NewRateLimiter(rdb, 5, 10, 5*time.Second, 5*time.Second)
 
 	ctx := context.Background()
 	rdb.FlushAll(ctx)
@@ -43,10 +43,10 @@ func TestAllowByIp_WhenItExceedsTheLimitOfRequestsPerIP(t *testing.T) {
 	ip := "192.168.1.1"
 
 	for i := 0; i < 5; i++ {
-		_, _ = rl.allowByIP(ctx, ip)
+		_, _ = rl.AllowByIP(ctx, ip)
 	}
 
-	allowed, err := rl.allowByIP(ctx, ip)
+	allowed, err := rl.AllowByIP(ctx, ip)
 
 	assert.Nil(t, err)
 	assert.False(t, allowed)
@@ -57,7 +57,7 @@ func TestAllowByToken_WhenItDoesNotExceedsTheLimitOfRequestsPerToken(t *testing.
 		Addr: "localhost:6379",
 	})
 
-	rl := NewRateLimiter(rdb, 5, 10, 5*time.Second, 5*time.Second)
+	rl := limiter.NewRateLimiter(rdb, 5, 10, 5*time.Second, 5*time.Second)
 
 	ctx := context.Background()
 	rdb.FlushAll(ctx)
@@ -65,7 +65,7 @@ func TestAllowByToken_WhenItDoesNotExceedsTheLimitOfRequestsPerToken(t *testing.
 	token := "abc123"
 
 	for i := 0; i < 10; i++ {
-		allowed, err := rl.allowByToken(ctx, token)
+		allowed, err := rl.AllowByToken(ctx, token)
 
 		assert.Nil(t, err)
 		assert.True(t, allowed)
@@ -77,7 +77,7 @@ func TestAllowByToken_WhenItExceedsTheLimitOfRequestsPerToken(t *testing.T) {
 		Addr: "localhost:6379",
 	})
 
-	rl := NewRateLimiter(rdb, 5, 10, 5*time.Second, 5*time.Second)
+	rl := limiter.NewRateLimiter(rdb, 5, 10, 5*time.Second, 5*time.Second)
 
 	ctx := context.Background()
 	rdb.FlushAll(ctx)
@@ -85,10 +85,10 @@ func TestAllowByToken_WhenItExceedsTheLimitOfRequestsPerToken(t *testing.T) {
 	token := "abc123"
 
 	for i := 0; i < 10; i++ {
-		_, _ = rl.allowByToken(ctx, token)
+		_, _ = rl.AllowByToken(ctx, token)
 	}
 
-	allowed, err := rl.allowByToken(ctx, token)
+	allowed, err := rl.AllowByToken(ctx, token)
 
 	assert.Nil(t, err)
 	assert.False(t, allowed)

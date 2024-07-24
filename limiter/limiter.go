@@ -28,17 +28,17 @@ func NewRateLimiter(client *redis.Client, rateLimitIP, rateLimitToken int, block
 func (rl *RateLimiter) Allow(ip, token string) (bool, error) {
 	ctx := context.Background()
 	if token != "" {
-		return rl.allowByToken(ctx, token)
+		return rl.AllowByToken(ctx, token)
 	}
-	return rl.allowByIP(ctx, ip)
+	return rl.AllowByIP(ctx, ip)
 }
 
-func (rl *RateLimiter) allowByIP(ctx context.Context, ip string) (bool, error) {
+func (rl *RateLimiter) AllowByIP(ctx context.Context, ip string) (bool, error) {
 	key := "rl:ip:" + ip
 	return rl.allow(ctx, key, rl.rateLimitIP, rl.blockTimeIP)
 }
 
-func (rl *RateLimiter) allowByToken(ctx context.Context, token string) (bool, error) {
+func (rl *RateLimiter) AllowByToken(ctx context.Context, token string) (bool, error) {
 	key := "rl:token:" + token
 	return rl.allow(ctx, key, rl.rateLimitToken, rl.blockTimeToken)
 }
