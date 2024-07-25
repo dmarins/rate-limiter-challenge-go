@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/dmarins/rate-limiter-challenge-go/config"
-	"github.com/dmarins/rate-limiter-challenge-go/limiter"
 	"github.com/dmarins/rate-limiter-challenge-go/middleware"
+	"github.com/dmarins/rate-limiter-challenge-go/rl"
 	"github.com/go-redis/redis/v8"
 )
 
@@ -17,17 +17,28 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	rdb := redis.NewClient(&redis.Options{
-		Addr: cfg.RedisAddr,
-	})
+	var ratelimiter rl.RateLimiterInterface
 
-	rl := limiter.NewRateLimiter(
-		rdb,
-		cfg.RateLimitIP,
-		cfg.RateLimitToken,
-		time.Duration(cfg.BlockTimeIP)*time.Second,
-		time.Duration(cfg.BlockTimeToken)*time.Second,
-	)
+	if cfg.Strategy == "redis" {
+		rdb := redis.NewClient(&redis.Options{
+			Addr: cfg.RedisAddr,
+		})
+
+		ratelimiter = rl.NewRedisRateLimiter(
+			rdb,
+			cfg.RateLimitIP,
+			cfg.RateLimitToken,
+			time.Duration(cfg.BlockTimeIP)*time.Second,
+			time.Duration(cfg.BlockTimeToken)*time.Second,
+		)
+	} else {
+		ratelimiter = rl.NewInMemoryRateLimiter(
+			cfg.RateLimitIP,
+			cfg.RateLimitToken,
+			time.Duration(cfg.BlockTimeIP)*time.Second,
+			time.Duration(cfg.BlockTimeToken)*time.Second,
+		)
+	}
 
 	mux := http.NewServeMux()
 
@@ -35,7 +46,7 @@ func main() {
 		w.Write([]byte("Hello, World!"))
 	})
 
-	handler := middleware.RateLimiterMiddleware(rl)(mux)
+	handler := middleware.RateLimiterMiddleware(ratelimiter)(mux)
 
 	http.ListenAndServe(":8080", handler)
 }

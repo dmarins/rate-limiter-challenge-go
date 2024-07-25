@@ -6,5 +6,5 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o rate-limiter cmd/main.go
 
 FROM scratch AS runner
 COPY --from=builder /app/.env .
-COPY --from=builder /app/rate-limiter /rate-limiter
-ENTRYPOINT ["/rate-limiter"]
+COPY --from=builder /app/rate-limiter .
+ENTRYPOINT ["./rate-limiter"]

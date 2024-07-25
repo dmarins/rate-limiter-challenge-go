@@ -4,11 +4,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/dmarins/rate-limiter-challenge-go/limiter"
+	"github.com/dmarins/rate-limiter-challenge-go/rl"
 )
 
-func RateLimiterMiddleware(rl *limiter.RateLimiter) func(next http.Handler) http.Handler {
+func RateLimiterMiddleware(rl rl.RateLimiterInterface) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
+
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ip := strings.Split(r.RemoteAddr, ":")[0]
 			token := r.Header.Get("API_KEY")
@@ -26,5 +27,6 @@ func RateLimiterMiddleware(rl *limiter.RateLimiter) func(next http.Handler) http
 
 			next.ServeHTTP(w, r)
 		})
+
 	}
 }

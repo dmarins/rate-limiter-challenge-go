@@ -1,4 +1,4 @@
-package limiter
+package rl
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"github.com/go-redis/redis/v8"
 )
 
-type RateLimiter struct {
+type RedisRateLimiter struct {
 	client         *redis.Client
 	rateLimitIP    int
 	rateLimitToken int
@@ -15,8 +15,8 @@ type RateLimiter struct {
 	blockTimeToken time.Duration
 }
 
-func NewRateLimiter(client *redis.Client, rateLimitIP, rateLimitToken int, blockTimeIP, blockTimeToken time.Duration) *RateLimiter {
-	return &RateLimiter{
+func NewRedisRateLimiter(client *redis.Client, rateLimitIP, rateLimitToken int, blockTimeIP, blockTimeToken time.Duration) RateLimiterInterface {
+	return &RedisRateLimiter{
 		client:         client,
 		rateLimitIP:    rateLimitIP,
 		rateLimitToken: rateLimitToken,
@@ -25,25 +25,29 @@ func NewRateLimiter(client *redis.Client, rateLimitIP, rateLimitToken int, block
 	}
 }
 
-func (rl *RateLimiter) Allow(ip, token string) (bool, error) {
+func (rl *RedisRateLimiter) Allow(ip, token string) (bool, error) {
 	ctx := context.Background()
+
 	if token != "" {
-		return rl.AllowByToken(ctx, token)
+		return rl.allowByToken(ctx, token)
 	}
-	return rl.AllowByIP(ctx, ip)
+
+	return rl.allowByIP(ctx, ip)
 }
 
-func (rl *RateLimiter) AllowByIP(ctx context.Context, ip string) (bool, error) {
-	key := "rl:ip:" + ip
+func (rl *RedisRateLimiter) allowByIP(ctx context.Context, ip string) (bool, error) {
+	key := "rrl:ip:" + ip
+
 	return rl.allow(ctx, key, rl.rateLimitIP, rl.blockTimeIP)
 }
 
-func (rl *RateLimiter) AllowByToken(ctx context.Context, token string) (bool, error) {
-	key := "rl:token:" + token
+func (rl *RedisRateLimiter) allowByToken(ctx context.Context, token string) (bool, error) {
+	key := "rrl:token:" + token
+
 	return rl.allow(ctx, key, rl.rateLimitToken, rl.blockTimeToken)
 }
 
-func (rl *RateLimiter) allow(ctx context.Context, key string, limit int, blockTime time.Duration) (bool, error) {
+func (rl *RedisRateLimiter) allow(ctx context.Context, key string, limit int, blockTime time.Duration) (bool, error) {
 	count, err := rl.client.Incr(ctx, key).Result()
 	if err != nil {
 		return false, err
